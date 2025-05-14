@@ -12,7 +12,7 @@ VERBOSE = True
 def fill_rec(b: Board, next_idx: int) -> bool:
     if next_idx == 81:
         return b.check_valid()
-    r, c = divmod(next_idx, 9)
+    r, c = Board.i_to_rc(next_idx)
     if b[r, c] is not None:  # we are solving instead of generating lol
         return fill_rec(b, next_idx + 1)
 

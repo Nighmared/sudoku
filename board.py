@@ -39,19 +39,21 @@ class Board:
 
     def __setitem__(self, k: tuple[int, int], v: Optional[int]):
         r, c = k
-        self.state[r * 9 + c] = v
+        self.state[Board.rc_to_i(r, c)] = v
 
     def __getitem__(self, k: tuple[int, int]) -> Optional[int]:
         r, c = k
-        return self.state[r * 9 + c]
+        return self.state[Board.rc_to_i(r, c)]
 
     def _check_indices_valid(self, indices: list[int]) -> bool:
         found: set[Optional[int]] = set()
+        assert len(indices) == 9, "Weird to give more than 9 indices?"
 
         for i in indices:
-            if self.state[i] in found and not self.state[i] is None:
+            v = self.state[i]
+            if v in found and v is not None:
                 return False
-            found.add(self.state[i])
+            found.add(v)
         return True
         # return True
 
@@ -62,7 +64,7 @@ class Board:
         indices: list[int] = []
         for vr in range(3):
             for vc in range(3):
-                indx = base_row + base_col + vr * 9 + vc
+                indx = base_row + base_col + Board.rc_to_i(vr, vc)
                 indices.append(indx)
         return indices
 
@@ -86,8 +88,15 @@ class Board:
     def _check_col_valid(self, c: int) -> bool:
         return self._check_indices_valid(self.get_col_indices(c))
 
-    def rc_to_i(self, r: int, c: int) -> int:
+    @staticmethod
+    def rc_to_i(r: int, c: int) -> int:
+        "converts row and column to index (0-80)"
         return r * 9 + c
+
+    @staticmethod
+    def i_to_rc(i: int) -> tuple[int, int]:
+        "converts index (in 0-80) to (row,col) tuple"
+        return divmod(i, 9)
 
     def _get_square(self, indx: int) -> int:
         sq = 0
@@ -117,14 +126,13 @@ class Board:
         for sq in range(9):
             if not self._check_square_valid(sq):
                 return False
-        for r in range(9):
-            if not self._check_row_valid(r):
+        # rows and cols
+        for i in range(9):
+            if not self._check_row_valid(i):
                 return False
-
-        for c in range(9):
-            if not self._check_col_valid(c):
+            if not self._check_col_valid(i):
                 return False
-
+        # maybe check if board is filled
         if no_none:
             return None not in self.state
         return True
